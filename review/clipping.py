@@ -22,11 +22,16 @@ class ReportContact:
 
 
 def _b_station(run: OverlapRun, a_station: Fraction) -> Fraction | None:
-    start, end = run.start, run.end
-    if not start.a_station <= a_station <= end.a_station:
-        return None
-    proportion = (a_station - start.a_station) / (end.a_station - start.a_station)
-    return start.b_station + proportion * (end.b_station - start.b_station)
+    """Interpolate B mileage inside the original piece containing ``a_station``."""
+    for piece in run.pieces:
+        start, end = piece.start, piece.end
+        if not start.a_station <= a_station <= end.a_station:
+            continue
+        if end.a_station == start.a_station:
+            return start.b_station if start.b_station == end.b_station else None
+        proportion = (a_station - start.a_station) / (end.a_station - start.a_station)
+        return start.b_station + proportion * (end.b_station - start.b_station)
+    return None
 
 
 def clip_run(run: OverlapRun, window: MileageWindow) -> ReportContact | None:

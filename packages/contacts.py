@@ -51,21 +51,15 @@ def _mileage_endpoint(a: SurveySegment, b: SurveySegment, hit: HitEndpoint) -> C
     return ContactEndpoint(a.station_at(alpha), b.station_at(beta), x, y)
 
 
-def _coverage_segments(revision: SurveyRevision) -> tuple[SurveySegment, ...]:
-    covered = set()
-    segments = []
-    for segment in original_segments(revision):
-        footprint = frozenset((segment.start.xy, segment.end.xy))
-        if footprint not in covered:
-            covered.add(footprint)
-            segments.append(segment)
-    return tuple(segments)
-
-
 def build_segment_contacts(a: SurveyRevision, b: SurveyRevision) -> tuple[SegmentContact, ...]:
-    """Record contacts between the surveyed footprints."""
-    a_segments = _coverage_segments(a)
-    b_segments = _coverage_segments(b)
+    """Record contacts between the surveyed footprints.
+
+    Every original segment is a separate passage: a line that returns over the
+    same coordinates keeps both crossings, so the evidence is never reduced to
+    a set of coordinate footprints.
+    """
+    a_segments = original_segments(a)
+    b_segments = original_segments(b)
     contacts = []
     for a_segment in a_segments:
         for b_segment in b_segments:
